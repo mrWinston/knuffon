@@ -1,0 +1,65 @@
+<template>
+  <div id="nav">
+    <router-link to="/">Home</router-link> |
+    <router-link to="/about">About</router-link>
+  </div>
+  <router-view/>
+</template>
+
+<script>
+export default {
+  name: 'App',
+  data: () => {
+    return {
+      connection: null
+    }
+  },
+  created: function() {
+    console.log("Created");
+    this.connection = new WebSocket('ws://localhost:8000/ws')
+    this.$store.commit('initializeStore')
+
+    this.connection.onmessage = function(event) {
+      console.log(event);
+    }
+
+    this.connection.onopen = function(event) {
+      console.log(event)
+      console.log("Successfully connected to the echo websocket server...")
+    }
+
+  },
+  methods: {
+    blub(args) {
+      console.log(args)
+    },
+    hello_response(args) {
+      if (args.token) {
+        this.$store.commit('userJWT', args.token)
+      }
+    }
+  }
+}
+</script>
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>
