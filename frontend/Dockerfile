@@ -10,7 +10,7 @@ COPY \
   ./public \
   ./src \
   ./yarn.lock \
-  .
+  ./
 
 
 CMD yarn run serve
