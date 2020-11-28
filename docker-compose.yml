@@ -1,53 +1,20 @@
 version: '3.4'
 
 services:
-  reverse-proxy:
-    image: traefik # The official Traefik docker image
-    command: --api --logLevel=INFO --docker
-    ports:
-      - "80:80"     # The HTTP port
-      - "8080:8080" # The Web UI (enabled by --api)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
-  receiver:
+  backend:
     build:
-      context: ./receiver
-      target: prod
-    image: sysloco-receiver
-    volumes:
-      - "log_data:/db"
-      - "./receiver:/receiver"
-    command: -db-engine sqlite -db-loc /db/db.txt -v 2
-    ports:
-      - 80
-      - "10001:10001/udp"
-    labels:
-      - "traefik.frontend.rule=PathPrefixStrip:/receiver"
-      - "traefik.port=80"
-    volumes:
-      - "./db.txt:/db/db.txt"
-  ui:
-    build:
-      context: ./ui
+      context: ./backend
       target: dev
-    image: sysloco-ui
-    volumes:
-      - ./ui/src:/app/src
-      - ./ui/public:/app/public
-      - ./ui/vue.config.js:/app/vue.config.js
+    image: knuffon-backend
     ports:
-      - 8080
-    labels:
-      - "traefik.frontend.rule=PathPrefixStrip:/"
-      - "traefik.frontend.passHostHeader=true"
-
-volumes:
-  log_data:
-
-networks:
-  default:
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.1.0/24
-
+      - 8000:8000
+    volumes:
+      - ./backend:/code
+  frontend:
+    build:
+      context: ./frontend
+    image: knuffon-frontend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./frontend:/code
