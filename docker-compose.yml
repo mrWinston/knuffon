@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       target: dev
-    image: knuffon-backend
+    image: knuffon-backend:dev
     ports:
       - 8000:8000
     volumes:
@@ -13,7 +13,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    image: knuffon-frontend
+    image: knuffon-frontend:dev
     ports:
       - 8080:8080
     volumes:
