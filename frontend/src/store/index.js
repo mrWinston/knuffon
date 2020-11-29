@@ -1,8 +1,9 @@
 import { createStore } from 'vuex'
 
-export default createStore({
+const store = createStore({
   state: {
     userJWT: ""
+    socket: null,
   },
   mutations: {
     userJWT: (state, jwt) => {
@@ -20,4 +21,9 @@ export default createStore({
   },
   modules: {
   }
-})
+});
+store.commit('initializeStore')
+var socket = new WebSocket('ws://localhost:8000/ws')
+store.commit('socket', socket)
+
+export default store

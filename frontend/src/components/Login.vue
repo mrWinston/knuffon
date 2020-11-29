@@ -10,9 +10,7 @@ export default {
     }
   },
   created: function() {
-    this.$store.commit('initializeStore');
-    console.log("Initializing WS Connection")
-    this.connection = new WebSocket("ws://localhost:8000/ws")
+    console.log("Initilized Login component");
   }
 }
 </script>
