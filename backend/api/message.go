@@ -10,8 +10,13 @@ type Message struct {
 	Args   map[string]string
 }
 
+type GameUpdate struct {
+  Action string
+}
+
 func ParseMessage(raw []byte) (Message, error) {
 	var msg Message
 	err := json.Unmarshal(raw, &msg)
 	return msg, err
 }
+

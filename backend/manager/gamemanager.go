@@ -70,22 +70,20 @@ func (gm *GameManager) addPlayer(player *game.Player) bool {
 }
 
 func (gm *GameManager) handleMessage(msg api.Message, conn *websocket.Conn) {
+  // error handling first
 	if msg.Token == "" && msg.Action != api.ACTION_HELLO {
 		// TODO: Return a Proper error
 		log.Error("Got a Message without token that's not Hello")
 		return
 	}
+  if err:= api.ValidateActionAndParameter(msg.Action, msg.Args); err != nil {
+    log.WithFields(GetErrorFields(err)).Error("Received an invalid message")
+    return
+  }
 
-	switch msg.Action {
-	case api.ACTION_HELLO:
-		err := api.ValidateActionAndParameter(api.ACTION_HELLO, msg.Args)
-		if err != nil {
-			log.WithFields(GetErrorFields(err)).Error("Somebody Sent a wrong Hello Message")
-			return
-		}
+  if msg.Action == api.ACTION_HELLO {
 		playerName := msg.Args["name"]
 
-		var player *game.Player
 		userID, err := ValidateToken(msg.Token)
 		if err == nil {
 			player = gm.Players[userID] // might just return nil
@@ -112,7 +110,6 @@ func (gm *GameManager) handleMessage(msg api.Message, conn *websocket.Conn) {
 		if err != nil {
 			log.WithFields(GetErrorFields(err)).Error("Could not Marshal Hello Answer")
 		}
-	}
 }
 
 func (gm *GameManager) Stop() {

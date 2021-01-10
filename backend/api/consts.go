@@ -9,16 +9,21 @@ const (
 	TYPE_ERROR  string = "error"
 	TYPE_ACTION string = "action"
 
-	ACTION_HELLO          string = "hello"
-	ACTION_HELLO_RESPONSE string = "hello_response"
-	ACTION_JOIN_GAME      string = "join_game"
-	ACTION_HOST_GAME      string = "host_game"
-	ACTION_START_GAME     string = "start_game"
+	ACTION_HELLO              string = "hello"
+	ACTION_HELLO_RESPONSE     string = "hello_response"
+	ACTION_JOIN_GAME          string = "join_game"
+	ACTION_JOIN_GAME_RESPONSE string = "join_game_response"
+	ACTION_HOST_GAME          string = "host_game"
+	ACTION_START_GAME         string = "start_game"
+	ACTION_GAME_UPDATE        string = "game_update"
 )
 
 var ActionParameters map[string][]string = map[string][]string{
-	ACTION_HELLO:          []string{"name"},
-	ACTION_HELLO_RESPONSE: []string{"name", "token"},
+	ACTION_HELLO:              {"name"},
+	ACTION_HELLO_RESPONSE:     {"name", "token", "error"},
+	ACTION_HOST_GAME:          {},
+	ACTION_JOIN_GAME:          {"gameID"},
+	ACTION_JOIN_GAME_RESPONSE: {"gameID", "error"},
 }
 
 func ValidateActionAndParameter(action string, args map[string]string) error {

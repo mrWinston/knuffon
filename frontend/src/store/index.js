@@ -1,9 +1,12 @@
 import { createStore } from 'vuex'
+import { Actions } from '../api/api'
 
 const store = createStore({
   state: {
     userJWT: "",
-    socket: null
+    socket: null,
+    username: "",
+    loggedIn: false,
   },
   mutations: {
     userJWT: (state, jwt) => {
@@ -12,18 +15,39 @@ const store = createStore({
     },
     initializeStore: (state) => {
       let jwt = localStorage.getItem('userJWT');
+      let name = localStorage.getItem('username');
       if (jwt) {
         state.userJWT = jwt;
       }
+      if (name) {
+        state.username = name;
+      }
+    },
+    username: (state, name) => {
+      localStorage.setItem('username', name)
+      state.username = name
     },
     socket: (state, socket) => {
       state.socket = socket
+    },
+    loggedIn: (state, loggedIn) => {
+      state.loggedIn = loggedIn
     }
   },
   actions: {
     handleMessage: (context, event) => {
-      console.log("Received Message:")
-      console.log(event)
+      let payload = JSON.parse(event.data)
+      switch (payload.Action) {
+        case Actions.helloResponse:
+          context.commit('userJWT', payload.Args.token)
+          context.commit('username', payload.Args.name)
+          context.commit('loggedIn', true)
+          break
+        default:
+          console.log("Could not parse message")
+          console.log(payload)
+          break
+      }
     },
   },
   modules: {

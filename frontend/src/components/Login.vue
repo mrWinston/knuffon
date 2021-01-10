@@ -1,8 +1,13 @@
 <template>
-  <form action="" method="" accept-charset="utf-8">
-    <input v-model="username" placeholder="Username">
-    <input type="submit" value="OK" v-on:click="login">
-  </form>
+  <div v-if="!loginPressed">
+    <form v-on:submit.prevent="login">
+      <input v-model="username" placeholder="Username">
+      <input type="submit" value="OK">
+    </form>
+  </div>
+  <div v-else>
+    logging in...
+  </div>
 </template>
 <script>
 import Api from '../api/api.js'
@@ -10,19 +15,32 @@ export default {
   name: 'Login',
   data: function() {
     return {
-      username: ""
+      username: this.$store.state.username,
+      loginPressed: false
+    }
+  },
+  computed: {
+    loggedIn () {
+      return this.$store.state.loggedIn
     }
   },
   created: function() {
     console.log("Initilized Login component");
   },
   methods: {
-    login: (event) =>{
-      this.$state.state.socket.send(JSON.stringify({
-        
-      }))
+    login() {
+      this.loginPressed = true
+      let loginJson = Api.loginJson(this.username, this.$store.state.userJWT)
+      this.$store.state.socket.send(JSON.stringify(loginJson))
       console.log("Yeah! Logged in!")
-      console.log(event)
+    }
+  },
+  watch: {
+    loggedIn(newValue, oldValue) {
+      if (newValue) {
+        console.log(newValue, oldValue) 
+        this.$router.push('/gameSelect')
+      } 
     }
   }
 

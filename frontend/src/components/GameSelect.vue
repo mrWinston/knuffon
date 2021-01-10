@@ -1,18 +1,46 @@
 <template>
-  <input v-model="gameid" placeholder="GameID">
+  <div v-if="!loading">
+    <form v-on:submit.prevent="joinGame">
+      <input v-model="gameID" placeholder="Game ID">
+      <input type="submit" value="Join Game">
+    </form>
+    <form v-on:submit.prevent="hostGame">
+      <p>Alternatively:</p>
+      <input type="submit" value="Host Game">
+    </form>
+  </div>
+  <div v-else>
+    logging in...
+  </div>
 </template>
 <script>
+//import Api from '../api/api.js'
 export default {
-  name: 'Login',
+  name: 'GameSelect',
   data: function() {
     return {
-      connection: null
+      username: this.$store.state.username,
+      gameID : "",
+      loading: false
+    }
+  },
+  computed: {
+    loggedIn () {
+      return this.$store.state.loggedIn;
     }
   },
   created: function() {
-    this.$store.commit('initializeStore');
-    console.log("Initializing WS Connection")
-    this.connection = new WebSocket("ws://localhost:8000/ws")
+    console.log("Initilized GameComponent")
+  },
+  methods: {
+    joinGame () {
+      console.log("Game Joined")
+    },
+    hostGame() {
+      console.log("Game Hosted")
+    }
+  },
+  watch: {
   }
 }
 </script>
