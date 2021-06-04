@@ -70,46 +70,71 @@ func (gm *GameManager) addPlayer(player *game.Player) bool {
 }
 
 func (gm *GameManager) handleMessage(msg api.Message, conn *websocket.Conn) {
-  // error handling first
+	// error handling first
 	if msg.Token == "" && msg.Action != api.ACTION_HELLO {
 		// TODO: Return a Proper error
 		log.Error("Got a Message without token that's not Hello")
 		return
 	}
-  if err:= api.ValidateActionAndParameter(msg.Action, msg.Args); err != nil {
-    log.WithFields(GetErrorFields(err)).Error("Received an invalid message")
-    return
-  }
+	if err := api.ValidateActionAndParameter(msg.Action, msg.Args); err != nil {
+		// TODO: Proper Error handling
+		log.WithFields(GetErrorFields(err)).Error("Received an invalid message")
+		return
+	}
+	// then, make sure, we filter out the "hello"
+	if msg.Action == api.ACTION_HELLO {
+		gm.handleHelloMessage(msg, conn)
+		return
+	}
 
-  if msg.Action == api.ACTION_HELLO {
-		playerName := msg.Args["name"]
+	// not a Hello Action, and got a token.
+	// Now, get us a user object
+	userID, err := ValidateToken(msg.Token)
+	if err != nil {
+		// TODO: Proper Error handling
+		log.WithFields(GetErrorFields(err)).Error("Could not Validate the Token")
+		return
+	}
+	player, ok := gm.Players[userID]
+	if !ok {
+		// TODO: Proper Error handling
+		log.WithFields(GetErrorFields(err)).Error("Somehow, we don't know that user")
+		return
+	}
+	// From here on, we have a player object
+	log.Infof("Identified a Player: %v", player)
 
-		userID, err := ValidateToken(msg.Token)
-		if err == nil {
-			player = gm.Players[userID] // might just return nil
-		}
-		if err != nil || player == nil { // No Token or No Player
-			log.Debug("Got an Hello Message without a Token. Genrating new User")
+}
+
+func (gm *GameManager) handleHelloMessage(msg api.Message, conn *websocket.Conn) {
+	playerName := msg.Args["name"]
+	var player *game.Player
+	userID, err := ValidateToken(msg.Token)
+	if err == nil {
+		player = gm.Players[userID] // might just return nil
+	}
+	if err != nil || player == nil { // No Token or No Player
+		log.Debug("Got an Hello Message without a Token. Genrating new User")
+		userID = util.GeneratePlayerID()
+		player = game.NewPlayer(playerName, userID)
+		for !gm.addPlayer(player) { // generate New IDs until we find one that fits
 			userID = util.GeneratePlayerID()
 			player = game.NewPlayer(playerName, userID)
-			for !gm.addPlayer(player) { // generate New IDs until we find one that fits
-				userID = util.GeneratePlayerID()
-				player = game.NewPlayer(playerName, userID)
-			}
 		}
-		// from here, we have a valid player
-		token, err := CreateToken(player.ID)
-		answer := api.Message{
-			Action: api.ACTION_HELLO_RESPONSE,
-			Args: map[string]string{
-				"name":  player.Name,
-				"token": token,
-			},
-		}
-		err = conn.WriteJSON(answer)
-		if err != nil {
-			log.WithFields(GetErrorFields(err)).Error("Could not Marshal Hello Answer")
-		}
+	}
+	// from here, we have a valid player
+	token, err := CreateToken(player.ID)
+	answer := api.Message{
+		Action: api.ACTION_HELLO_RESPONSE,
+		Args: map[string]string{
+			"name":  player.Name,
+			"token": token,
+		},
+	}
+	err = conn.WriteJSON(answer)
+	if err != nil {
+		log.WithFields(GetErrorFields(err)).Error("Could not Marshal Hello Answer")
+	}
 }
 
 func (gm *GameManager) Stop() {

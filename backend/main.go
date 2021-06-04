@@ -60,7 +60,6 @@ func main() {
 	log.SetReportCaller(true)
 	defer gm.Stop()
 	http.HandleFunc("/ws", HandleWS)
-
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
 		log.Error(err)
